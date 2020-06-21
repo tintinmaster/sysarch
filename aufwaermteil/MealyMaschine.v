@@ -5,39 +5,83 @@ module MealyPattern(
 );
 
 //HIER WAR DAS TODO, FALLS ES ZU FEHLERN KOMMT :)
-	reg p, q;
-	always @(posedge clock)
-	begin
-		q = p;
-		p = i;
-	end
-	assign o[0] = i ? ((p & q) ? 1 : 0) : 0;
-	assign o[1] = i ? ((p == 0) & (q == 0) ? 1 : 0) : 0;
-endmodule;
+reg p, q;
+always @(posedge clock)
+		begin
+			p <= i;
+			if (p == 'b1) 
+				q <= 'b1;
+			else
+				q <= 'b0;
+		end
+	assign o[1] = i ? ((p & q) ? 1 : 0) : 0;
+	assign o[0] = i ? ((p == 0) & (q == 0) ? 1 : 0) : 0;
 
 endmodule
 
 module MealyPatternTestbench();
 //HIER WAR DAS TODO, FALLS ES ZU FEHLERN KOMMT :)
-	reg clk;
-	reg counter;
-	reg inp;
+reg clk;
+reg [9:0] inp;
+reg currInp;
+reg out;
 
-	assign inp = 10'b1110011001; 
-
-	always 
+//initialisieren	
+initial 
 	begin
-		clk <= 1'b1; #2; clk 1'b0; #2;
+		inp = 10'b1110011001;
+		clk = 0;
+		integer counter = 0;
 	end
 
-	always 
+	//die clock
+always 
 	begin
-		(counter == 10) ? counter <= 0 : counter <= counter + 1; #4;
+		#2;
+		clk = !clk;
 	end
 
-	MealyPattern machine(.clock(clk), .i(inp[counter]), .o(2'b0));
+	//das inputten
+	always @(posedge clk)
+	begin
+		#5;
+		currInp = inp >> counter;
+		counter = counter + 1;
+	end
 
-	// TODO Überprüfe Ausgaben
+	MealyPattern machine(.clock(clk), .i(currInp), .o(out));
+
+	//eigentlicher Tester (einfaches matchen)
+	initial
+	begin
+		if (counter == 2)
+			if (out[1] == 1 && out[0] == 0)
+				$display("found first pattern correctly");
+			else
+				$display("didnt found first pattern");
+		if (counter == 6)
+			if (out[1] == 1 && out[0] == 0)
+				$display("found second pattern correctly");
+			else
+				$display("didnt found second pattern");
+		if (counter == 9) 
+			if (out[0] == 0 && out[1] == 1)
+				$display("found third pattern correctly");
+			else
+				$display("didnt third first pattern");
+	end
+
+	initial
+	begin
+		$dumpfile ("mealy.vcd");
+		$dumpvars;
+	end
+
+	initial
+	begin
+		#100;
+		$finish;
+	end
 
 endmodule
 
