@@ -5,17 +5,22 @@ module MealyPattern(
 );
 
 //HIER WAR DAS TODO, FALLS ES ZU FEHLERN KOMMT :)
-reg p, q;
+reg ff1, ff2;
+
 always @(posedge clock)
 		begin
-			p <= i;
-			if (p == 'b1) 
-				q <= 'b1;
-			else
-				q <= 'b0;
+			ff1 <= i;
+			ff2 <= ff1;
+			$display("cycle");
+			$display(i);
+			$display(ff1);
+			$display(ff2);
+			$display("generated output");
+			$display(ff1 & ff2 & i);
+			$display(!ff1 & !ff2 & i);
 		end
-	assign o[1] = i ? ((p & q) ? 1 : 0) : 0;
-	assign o[0] = i ? ((p == 0) & (q == 0) ? 1 : 0) : 0;
+	assign o[1] = i ? ((ff1 & ff2) ? 1'b1 : 1'b0) : 1'b0;
+	assign o[0] = i ? ((!ff1 & !ff2) ? 1'b1 : 1'b0) : 1'b0;
 
 endmodule
 
@@ -24,64 +29,74 @@ module MealyPatternTestbench();
 reg clk;
 reg [9:0] inp;
 reg currInp;
-reg out;
+reg [3:0] c;
+wire [1:0] out;
 
 //initialisieren	
 initial 
 	begin
-		inp = 10'b1110011001;
+		inp = 10'b1001100111;
 		clk = 0;
-		integer counter = 0;
+		c = 0;
+		$dumpfile("mealy.vcd");
+		$dumpvars;
 	end
 
 	//die clock
 always 
 	begin
-		#2;
+		#5;
 		clk = !clk;
 	end
 
-	//das inputten
-	always @(posedge clk)
-	begin
-		#5;
-		currInp = inp >> counter;
-		counter = counter + 1;
-	end
-
-	MealyPattern machine(.clock(clk), .i(currInp), .o(out));
+	MealyPattern machine(.clock(clk), .i(currInp), .o(out));	
 
 	//eigentlicher Tester (einfaches matchen)
 	initial
 	begin
-		if (counter == 2)
-			if (out[1] == 1 && out[0] == 0)
-				$display("found first pattern correctly");
-			else
-				$display("didnt found first pattern");
-		if (counter == 6)
-			if (out[1] == 1 && out[0] == 0)
-				$display("found second pattern correctly");
-			else
-				$display("didnt found second pattern");
-		if (counter == 9) 
-			if (out[0] == 0 && out[1] == 1)
-				$display("found third pattern correctly");
-			else
-				$display("didnt third first pattern");
-	end
-
-	initial
-	begin
-		$dumpfile ("mealy.vcd");
-		$dumpvars;
-	end
-
-	initial
-	begin
-		#100;
+		currInp = inp[0];
+		#10;
+		if (out[0] != 0 || out[1] != 0) 
+			$display("fault on 0");
+		currInp = inp[1];
+		#10;
+		if (out[0] != 0 || out[1] != 0)
+			$display("fault on 1");
+		currInp = inp[2];
+		#10;
+		if (out[0] != 0 || out[1] != 1)
+			$display("fault on 2");
+		currInp = inp[3];
+		#10;
+		if (out[0] != 0 || out[1] != 0)
+         $display("fault on 3");
+      currInp = inp[4];
+		#10;
+		if (out[0] != 0 || out[1] != 0)
+			$display("fault on 4");
+      currInp = inp[5];
+		#10;
+		if (out[0] != 1 || out[1] != 0)
+         $display("fault on 5");
+		currInp = inp[6];
+		#10;
+		if (out[0] != 0 || out[1] != 0)
+         $display("fault on 6");
+      currInp = inp[7];
+		#10;
+		if (out[0] != 0 || out[1] != 0)
+         $display("fault on 7");
+      currInp = inp[8];
+		#10;
+		if (out[0] != 0 || out[1] != 0)
+         $display("fault on 8");
+      currInp = inp[9];
+		#10;
+		if (out[0] != 1 || out[1] != 0)
+         $display("fault on 9");
 		$finish;
 	end
+
 
 endmodule
 
