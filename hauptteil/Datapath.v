@@ -115,7 +115,69 @@ module ArithmeticLogicUnit(
 	output [31:0] result,
 	output        zero
 );
-
+	wire [31:0] w1;
+	wire w2;
 	// TODO Implementierung der ALU
+	case (alucontrol)
+		3'b000:
+			begin
+				//0^31 (a < b?1:0)
+				if (a < b)
+					begin
+						assign result = {31{1'b0}, 1b'1};
+						assign zero = 1'b0;
+					end 
+				else
+					begin
+						assign result = {32{1b'0}};
+						assign zero = 1'b1;
+					end
+			end
+		3'b001:
+			begin
+				//a - b
+				assign {w2, w1} = a - b;
+				//signed beachten????
+				//result an w2 anpassen?
+				assign result = w1;
+				if (result == {32{1'b0}})
+					assign zero = 1'b1;
+				else 
+					assign zero = 1'b0;
+			end
+		3'b101:
+			begin
+				assign {w2, w1} = a + b;
+				//result an w2 anpassen???????
+				assign result = w1;
+				if (result == {32{1'b0}})
+					assign zero = 1'b1;
+				else 
+					assign zero = 1'b0;
+			end
+		3'b110:
+			begin
+				//a|b
+				assign result = a|b;
+				if (result == {32{1'b0}})
+					assign zero = 1'b1;
+				else 
+					assign zero = 1'b0;
+			end
+		3'111:
+			begin
+				//a&b
+				assign result = a&b;
+				if (result == {32{1'b0}})
+					assign zero = 1'b1;
+				else 
+					assign zero = 1'b0;
+			end
+	endcase
 
 endmodule
+
+//ALU teilweise implementiert / verhalten bei overflow? / signed für subtraktion?
+//ALU anhand der alucontrol codes implementiert, das Verhalten für andere codes ist wie in der Aufgabe gesagt undefiniert. 
+//Bei der Addition und subtraktion kann es zu einem overflow kommen, dieser bit ist zwar abgefangen, aber es ist noch nicht implementiert, wie mit ihm umgegangen wird, da result eine Länge von 32bit hat.
+//Subtraktion momentan noch unsigned

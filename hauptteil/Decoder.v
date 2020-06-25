@@ -27,11 +27,11 @@ module Decoder(
 					memtoreg = 0;
 					dojump = 0;
 					case (funct)
-						6'b100001: alucontrol = // TODO // Addition unsigned
-						6'b100011: alucontrol = // TODO // Subtraktion unsigned
-						6'b100100: alucontrol = // TODO // and
-						6'b100101: alucontrol = // TODO // or
-						6'b101011: alucontrol = // TODO // set-less-than unsigned
+						6'b100001: alucontrol = 3'b101; // Addition unsigned
+						6'b100011: alucontrol = 3'b001; // Subtraktion unsigned
+						6'b100100: alucontrol = 3'b111; // and
+						6'b100101: alucontrol = 3'b110; // or
+						6'b101011: alucontrol = 3'b000; // set-less-than unsigned
 						default:   alucontrol = // TODO // undefiniert
 					endcase
 				end
@@ -56,7 +56,7 @@ module Decoder(
 					memwrite = 0;
 					memtoreg = 0;
 					dojump = 0;
-					alucontrol = // TODO // Subtraktion
+					alucontrol = 3'b001; // Subtraktion
 				end
 			6'b001001: // Addition immediate unsigned
 				begin
@@ -67,7 +67,7 @@ module Decoder(
 					memwrite = 0;
 					memtoreg = 0;
 					dojump = 0;
-					alucontrol = // TODO // Addition
+					alucontrol = 3'b101; // Addition
 				end
 			6'b000010: // Jump immediate
 				begin
