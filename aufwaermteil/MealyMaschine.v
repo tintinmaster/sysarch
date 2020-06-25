@@ -13,14 +13,22 @@ always @(posedge clock)
 			ff2 <= ff1;
 			$display("cycle");
 			$display(i);
+			
 			$display(ff1);
 			$display(ff2);
+			
 			$display("generated output");
+			$display("pattern 111 (o[1])");
 			$display(ff1 & ff2 & i);
+			$display("pattern 001 (o[0])");
 			$display(!ff1 & !ff2 & i);
+			$display("\n");
+			
 		end
-	assign o[1] = i ? ((ff1 & ff2) ? 1'b1 : 1'b0) : 1'b0;
-	assign o[0] = i ? ((!ff1 & !ff2) ? 1'b1 : 1'b0) : 1'b0;
+	/*assign o[0] = (!ff1 & !ff2 & i) ? 1'b1 : 1'b0;
+	assign o[1] = (ff1 & ff2 & i) ? 1'b1 : 1'b0;*/
+
+	assign o = (i == 1'b0) ? 2'b0 : ((ff1 != ff2) ? 2'b0 : ((ff1 == 1'b1) ? 2'b10 : 2'b01));
 
 endmodule
 
@@ -45,8 +53,7 @@ initial
 	//die clock
 always 
 	begin
-		#5;
-		clk = !clk;
+		clk <= 1'b1; #5; clk <= 1'b0; #5;
 	end
 
 	MealyPattern machine(.clock(clk), .i(currInp), .o(out));	
@@ -54,46 +61,59 @@ always
 	//eigentlicher Tester (einfaches matchen)
 	initial
 	begin
+		currInp = 1'b0;
+		#20
+		$display("\n start \n");
 		currInp = inp[0];
 		#10;
-		if (out[0] != 0 || out[1] != 0) 
+		$display(out);
+		if (out[0] != 0 | out[1] != 0)
 			$display("fault on 0");
 		currInp = inp[1];
 		#10;
-		if (out[0] != 0 || out[1] != 0)
+		$display(out);
+		if (out[0] == 1 | out[1] == 1)
 			$display("fault on 1");
 		currInp = inp[2];
 		#10;
-		if (out[0] != 0 || out[1] != 1)
+		$display(out);
+		if (out[0] != 0 | out[1] != 1)
 			$display("fault on 2");
 		currInp = inp[3];
 		#10;
-		if (out[0] != 0 || out[1] != 0)
-         $display("fault on 3");
-      currInp = inp[4];
+		$display(out);
+		if (out[0] != 0 | out[1] != 1)
+			$display("fault on 3");
+		currInp = inp[4];
 		#10;
-		if (out[0] != 0 || out[1] != 0)
-			$display("fault on 4");
+		$display(out);
+		if (out[0] != 0 | out[1] != 0)
+			$display("fault on 3");
       currInp = inp[5];
 		#10;
-		if (out[0] != 1 || out[1] != 0)
-         $display("fault on 5");
-		currInp = inp[6];
+		$display(out);
+		if (out[0] != 0 | out[1] != 0)
+			$display("fault on 4");
+      currInp = inp[6];
 		#10;
-		if (out[0] != 0 || out[1] != 0)
-         $display("fault on 6");
-      currInp = inp[7];
+		$display(out);
+		if (out[0] != 1 | out[1] != 0)
+			$display("fault on 5");
+		currInp = inp[7];
 		#10;
-		if (out[0] != 0 || out[1] != 0)
-         $display("fault on 7");
+		$display(out);
+		if (out[0] != 0 | out[1] != 0)
+			$display("fault on 6");
       currInp = inp[8];
 		#10;
-		if (out[0] != 0 || out[1] != 0)
-         $display("fault on 8");
+		$display(out);
+		if (out[0] != 0 | out[1] != 0)
+			$display("fault on 7");
       currInp = inp[9];
 		#10;
-		if (out[0] != 1 || out[1] != 0)
-         $display("fault on 9");
+		$display(out);
+		if (out[0] != 1 | out[1] != 0)
+			$display("fault on 9");
 		$finish;
 	end
 

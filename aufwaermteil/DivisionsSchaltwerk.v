@@ -23,8 +23,16 @@ module Division(
 			count <= 0;
 		end
 		else begin
-				for (count = 31; count >= 0; count = count+1) begin
-				rStrich = (r < 2) + a[count];
+			if (count < 31)
+				count = count + 1;
+			if (count == 32)
+				$display("over");
+			else begin
+				rStrich = (r << 2) + a[count];
+				$display("R reg:");
+				$display(forR);
+				$display("B reg");
+				$display(forB);
 				if (rStrich < forB) begin
 					forA[count] = 0;
 					forR = rStrich;
