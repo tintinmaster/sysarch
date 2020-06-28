@@ -1,6 +1,6 @@
 module Datapath(
 	input         clk, reset,
-	input   [1:0]      memtoreg,
+	input 	      memtoreg,
 	input         dobranch,
 	input         alusrcbimm,
 	input  [4:0]  destreg,
@@ -12,7 +12,8 @@ module Datapath(
 	input  [31:0] instr,
 	output [31:0] aluout,
 	output [31:0] writedata,
-	input  [31:0] readdata
+	input  [31:0] readdata,
+	input 		  lui
 	
 );
 	wire [31:0] pc;
@@ -25,28 +26,15 @@ module Datapath(
 	ProgramCounter pcenv(clk, reset, dobranch, signimm, jump, instr[25:0], pc);
 
 	// Execute:
-	// (a) Wähle Operanden aus
+	// (a1) Wähle Operanden aus
 	SignExtension se(instr[15:0], signimm);   //--> immediate wird in signimm geladen
+	// (a2) LUI möglichst simultan zu signext eigentlich...
+	LUI lu(instr[15:0], luiout);
 	assign srcbimm = alusrcbimm ? signimm : srcb;
 	// (b) Führe Berechnung in der ALU durch
 	ArithmeticLogicUnit alu(srca, srcbimm, alucontrol, aluout, zero);
-	// (c) Führe LUI aus
-	LUI lu(instr[15:0], luiout);
-	// (d) Wähle richtiges Ergebnis aus
-	reg [31:0] res;
-	assign result = res;
-	always @* 
-	begin
-		case(memtoreg)
-			2'b00:
-				res = aluout;
-			2'b01:
-				res = readdata;
-			2'b10:
-				res = luiout;
-		endcase
-	end
-	//assign result = memtoreg ? readdata : aluout;
+	// (c) Wähle richtiges Ergebnis aus
+	assign result = lui ? luiout : (memtoreg ? readdata : aluout);
 
 	// Memory: Datenwort das zur (möglichen) Speicherung an den Datenspeicher übertragen wird
 	assign writedata = srcb;

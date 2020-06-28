@@ -1,14 +1,15 @@
 module Decoder(
 	input     [31:0] instr,      // Instruktionswort
 	input            zero,       // Liefert aktuelle Operation im Datenpfad 0 als Ergebnis?
-	output reg 	[1:0]	 memtoreg,   // Verwende ein geladenes Wort anstatt des ALU-Ergebis als Resultat
+	output reg 		 memtoreg,   // Verwende ein geladenes Wort anstatt des ALU-Ergebis als Resultat
 	output reg       memwrite,   // Schreibe in den Datenspeicher
 	output reg       dobranch,   // Führe einen relativen Sprung aus
 	output reg       alusrcbimm, // Verwende den immediate-Wert als zweiten Operanden
 	output reg [4:0] destreg,    // Nummer des (möglicherweise) zu schreibenden Zielregisters
 	output reg       regwrite,   // Schreibe ein Zielregister
 	output reg       dojump,     // Führe einen absoluten Sprung aus
-	output reg [2:0] alucontrol  // ALU-Kontroll-Bits
+	output reg [2:0] alucontrol,  // ALU-Kontroll-Bits
+	output reg		lui
 	
 );
 	// Extrahiere primären und sekundären Operationcode
@@ -24,7 +25,7 @@ module Decoder(
 					destreg = instr[15:11];
 					alusrcbimm = 0;
 					dobranch = 0;
-					memwrite = 2'b00;
+					memwrite = 0;
 					memtoreg = 0;
 					dojump = 0;
 					case (funct)
@@ -35,6 +36,7 @@ module Decoder(
 						6'b101011: alucontrol = 3'b000; // set-less-than unsigned
 						default:   alucontrol = 3'b011; // undefiniert
 					endcase
+					lui = 0;
 				
 				end
 			6'b100011, // Lade Datenwort aus Speicher
@@ -45,9 +47,10 @@ module Decoder(
 					alusrcbimm = 1;
 					dobranch = 0;
 					memwrite = op[3];
-					memtoreg = 2'b01;
+					memtoreg = 1;
 					dojump = 0;
 					alucontrol = 3'b101;// Addition effektive Adresse: Basisregister + Offset
+					lui = 0;
 				
 				end
 			6'b000100: // Branch Equal
@@ -57,9 +60,10 @@ module Decoder(
 					alusrcbimm = 0;
 					dobranch = zero; // Gleichheitstest
 					memwrite = 0;
-					memtoreg = 2'b00;
+					memtoreg = 0;
 					dojump = 0;
 					alucontrol = 3'b001; // Subtraktion
+					lui = 0;
 				
 				end
 			6'b001001: // Addition immediate unsigned
@@ -69,9 +73,10 @@ module Decoder(
 					alusrcbimm = 1;
 					dobranch = 0;
 					memwrite = 0;
-					memtoreg = 2'b00;
+					memtoreg = 0;
 					dojump = 0;
 					alucontrol = 3'b101; // Addition
+					lui = 0;
 				
 				end
 			6'b000010: // Jump immediate
@@ -81,9 +86,10 @@ module Decoder(
 					alusrcbimm = 0;
 					dobranch = 0;
 					memwrite = 0;
-					memtoreg = 2'b00;
+					memtoreg = 0;
 					dojump = 1;
 					alucontrol = 3'b011; //undefiniert
+					lui = 0;
 				
 				end
 			6'b001111: //Lui Load Upper Immediate !!!!!!! 
@@ -93,9 +99,10 @@ module Decoder(
 					alusrcbimm = 0;
 					dobranch = 0;
 					memwrite = 0;
-					memtoreg = 2'b10;
+					memtoreg = 0;
 					dojump = 0;
 					alucontrol = 3'b011; //undefiniert, shift außerhalb von alu
+					lui = 1;
 				
 				end
 			6'b001101: //Ori Bitwise or immediate !!!!!!  
@@ -105,9 +112,10 @@ module Decoder(
 					alusrcbimm = 1;
 					dobranch = 0;
 					memwrite = 0;
-					memtoreg = 2'b00;
+					memtoreg = 0;
 					dojump = 0;
 					alucontrol = 3'b110; //bitwise or
+					lui = 0;
 				
 				end
 			6'b000001: // BLTZ Branch Less Than Zero !!!!! //a muss als signed betrachtet werden!!
@@ -117,9 +125,10 @@ module Decoder(
 					alusrcbimm = 0;
 					dobranch = ~zero; //negation von zero output der ALU zum testen --> ALU ergebnis 1 = branch
 					memwrite = 0;
-					memtoreg = 2'b00;
+					memtoreg = 0;
 					dojump = 0;
 					alucontrol =  3'b000;//SLT
+					lui = 0;
 					
 					//b ist 0 da stellen für reg auf 0reg zeigen
 				end
@@ -130,9 +139,10 @@ module Decoder(
 					alusrcbimm = 1'bx;
 					dobranch = 1'bx;
 					memwrite = 1'bx;
-					memtoreg = 2'bx;
+					memtoreg = 1'bx;
 					dojump = 1'bx;
 					alucontrol = 3'b011; //undefiniert
+					lui = 0;
 				
 				end
 		endcase
