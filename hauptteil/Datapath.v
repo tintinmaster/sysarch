@@ -194,8 +194,7 @@ module ArithmeticLogicUnit(
 	end
 endmodule
 
-//ALU größtenteils implementiert / verhalten bei overflow? / signed für subtraktion?
+//ALU größtenteils implementiert / verhalten bei overflow? 
 //ALU anhand der alucontrol codes implementiert, das Verhalten für andere codes ist wie in der Aufgabe gesagt undefiniert. 
 //Bei der Addition und subtraktion kann es zu einem overflow kommen, dieser bit ist zwar abgefangen, aber es ist noch nicht implementiert, wie mit ihm umgegangen wird, da result eine Länge von 32bit hat.
-//alucontrol auf 4 erweitert
-//alu um 16er shift erweitert
+
