@@ -9,7 +9,11 @@ module Decoder(
 	output reg       regwrite,   // Schreibe ein Zielregister
 	output reg       dojump,     // Führe einen absoluten Sprung aus
 	output reg [2:0] alucontrol,  // ALU-Kontroll-Bits
-	output reg		lui
+	output reg 		 lui,
+	output reg		 domul,
+	output reg		 multoreg,
+	output reg		 lohi
+
 	
 );
 	// Extrahiere primären und sekundären Operationcode
@@ -21,8 +25,6 @@ module Decoder(
 		case (op)
 			6'b000000: // Rtype Instruktion
 				begin
-					regwrite = 1;
-					destreg = instr[15:11];
 					alusrcbimm = 0;
 					dobranch = 0;
 					memwrite = 0;
@@ -37,7 +39,40 @@ module Decoder(
 						default:   alucontrol = 3'b011; // undefiniert
 					endcase
 					lui = 0;
-				
+					case (funct)
+						6'b011001: 
+							begin
+								domul = 1;
+								regwrite = 0;
+								destreg = 5'bx;
+								multoreg = 0;
+								lohi = 1'bx;
+							end
+						6'b010010:
+							begin //mflo
+								domul = 0;
+								regwrite = 1;
+								destreg = instr[15:11];
+								multoreg = 1;
+								lohi = 0; //lo
+							end
+						6'b010000:
+							begin //mfhi
+								domul = 0;
+								regwrite = 1;
+								destreg = instr[15:11];
+								multoreg = 1;
+								lohi = 1; //hi
+							end
+						default:   
+							begin
+								domul = 0;
+								regwrite = 1;
+								destreg = instr[15:11];
+								multoreg = 0;
+								lohi = 1'bx;
+							end
+					endcase
 				end
 			6'b100011, // Lade Datenwort aus Speicher
 			6'b101011: // Speichere Datenwort
@@ -51,6 +86,10 @@ module Decoder(
 					dojump = 0;
 					alucontrol = 3'b101;// Addition effektive Adresse: Basisregister + Offset
 					lui = 0;
+					domul = 0;
+					multoreg = 0;
+					lohi = 1'bx;
+					
 				
 				end
 			6'b000100: // Branch Equal
@@ -64,6 +103,10 @@ module Decoder(
 					dojump = 0;
 					alucontrol = 3'b001; // Subtraktion
 					lui = 0;
+					domul = 0;
+					multoreg = 0;
+					lohi = 1'bx;
+					
 				
 				end
 			6'b001001: // Addition immediate unsigned
@@ -77,6 +120,10 @@ module Decoder(
 					dojump = 0;
 					alucontrol = 3'b101; // Addition
 					lui = 0;
+					domul = 0;
+					multoreg = 0;
+					lohi = 1'bx;
+					
 				
 				end
 			6'b000010: // Jump immediate
@@ -90,6 +137,10 @@ module Decoder(
 					dojump = 1;
 					alucontrol = 3'b011; //undefiniert
 					lui = 0;
+					domul = 0;
+					multoreg = 0;
+					lohi = 1'bx;
+					
 				
 				end
 			6'b001111: //Lui Load Upper Immediate !!!!!!! 
@@ -103,6 +154,10 @@ module Decoder(
 					dojump = 0;
 					alucontrol = 3'b011; //undefiniert, shift außerhalb von alu
 					lui = 1;
+					domul = 0;
+					multoreg = 0;
+					lohi = 1'bx;
+					
 				
 				end
 			6'b001101: //Ori Bitwise or immediate !!!!!!  
@@ -116,6 +171,10 @@ module Decoder(
 					dojump = 0;
 					alucontrol = 3'b110; //bitwise or
 					lui = 0;
+					domul = 0;
+					multoreg = 0;
+					lohi = 1'bx;
+					
 				
 				end
 			6'b000001: // BLTZ Branch Less Than Zero !!!!! //a muss als signed betrachtet werden!!
@@ -129,6 +188,10 @@ module Decoder(
 					dojump = 0;
 					alucontrol =  3'b000;//SLT
 					lui = 0;
+					domul = 0;
+					multoreg = 0;
+					lohi = 1'bx;
+					
 					
 					//b ist 0 da stellen für reg auf 0reg zeigen
 				end
@@ -143,6 +206,10 @@ module Decoder(
 					dojump = 1'bx;
 					alucontrol = 3'b011; //undefiniert
 					lui = 0;
+					domul = 0;
+					multoreg = 0;
+					lohi = 1'bx;
+					
 				
 				end
 		endcase

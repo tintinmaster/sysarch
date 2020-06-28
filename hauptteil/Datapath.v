@@ -13,14 +13,19 @@ module Datapath(
 	output [31:0] aluout,
 	output [31:0] writedata,
 	input  [31:0] readdata,
-	input 		  lui
-	
+	input 		  lui,
+	input domul,
+	input multoreg,
+	input lohi
 );
 	wire [31:0] pc;
 	wire [31:0] signimm;
 	wire [31:0] srca, srcb, srcbimm;
 	wire [31:0] result;
 	wire [31:0] luiout;
+	wire  [63:0] mmout;
+	wire [31:0] lo;
+	wire [31:0] hi;
 
 	// Fetch: Reiche PC an Instruktionsspeicher weiter und update PC
 	ProgramCounter pcenv(clk, reset, dobranch, signimm, jump, instr[25:0], pc);
@@ -31,17 +36,18 @@ module Datapath(
 	// (a2) LUI möglichst simultan zu signext eigentlich...
 	LUI lu(instr[15:0], luiout);
 	assign srcbimm = alusrcbimm ? signimm : srcb;
-	// (b) Führe Berechnung in der ALU durch
+	// (b1) Führe Berechnung in der ALU durch
 	ArithmeticLogicUnit alu(srca, srcbimm, alucontrol, aluout, zero);
+	// (b2) Führe MUL berechnung aus
+	Multi m(srca, srcbimm, mmout);
 	// (c) Wähle richtiges Ergebnis aus
-	assign result = lui ? luiout : (memtoreg ? readdata : aluout);
-
+	assign result = multoreg ? (lohi ? hi : lo) : (lui ? luiout : (memtoreg ? readdata : aluout));
 	// Memory: Datenwort das zur (möglichen) Speicherung an den Datenspeicher übertragen wird
 	assign writedata = srcb;
-
 	// Write-Back: Stelle Operanden bereit und schreibe das jeweilige Resultat zurück
 	RegisterFile gpr(clk, regwrite, instr[25:21], instr[20:16],
-				   destreg, result, srca, srcb);
+				   destreg, result, srca, srcb); 
+	SpecialRegisterFile specr(clk, domul, mmout, lo, hi);
 endmodule
 
 module ProgramCounter(
@@ -98,6 +104,25 @@ module RegisterFile(
 	assign rd2 = (ra2 != 0) ? registers[ra2] : 0;
 endmodule
 
+module SpecialRegisterFile(
+	input clk,
+	input mul_we,
+	input [63:0]	mulres,
+	output [31:0]	lo_r, hi_r
+);
+	reg [31:0] specialRegisters[1:0];
+
+	always @(posedge clk)
+		if (mul_we) begin
+			specialRegisters[0] <= mulres[31:0];
+			specialRegisters[1] <= mulres[63:32];
+		end
+		
+	assign lo_r = specialRegisters[0];
+	assign hi_r = specialRegisters[1];
+
+endmodule
+
 module Adder(
 	input  [31:0] a, b,
 	input         cin,
@@ -112,6 +137,13 @@ module LUI(
 	output [31:0] o
 );
 	assign o = i << 16;
+endmodule
+
+module Multi(
+	input [31:0] a, b,
+	output [63:0] out
+);
+	assign out = a*b;
 endmodule
 
 module SignExtension(
@@ -189,6 +221,14 @@ module ArithmeticLogicUnit(
 					z = 1'b1;
 				else 
 					z = 1'b0;
+			end
+		3'b010:
+			begin //mflo
+				
+			end
+		3'b100:
+			begin //mfhi
+				
 			end
 	endcase
 	end

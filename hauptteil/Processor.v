@@ -15,5 +15,6 @@ module Processor(
 	// Binde Instruktions- und Datenspeicher an
 	InstructionMemory imem(pc[7:2], instr);
 	DataMemory dmem(clk, datawrite, dataaddr[7:2], writedata, readdata);
+
 endmodule
 

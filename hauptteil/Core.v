@@ -13,15 +13,19 @@ module MIPScore(
 	wire [4:0] destreg;
 	wire [2:0] alucontrol;
 	wire  memtoreg, lui;
+	wire	domul, multoreg, lohi;
+	
 
 
 	Decoder decoder(instr, zero, memtoreg, memwrite,
 					dobranch, alusrcbimm, destreg,
-					regwrite, dojump, alucontrol, lui);
+					regwrite, dojump, alucontrol, lui, 
+					domul, multoreg, lohi);
 	Datapath dp(clk, reset, memtoreg, dobranch,
 				alusrcbimm, destreg, regwrite, dojump,
 				alucontrol,
 				zero, pc, instr,
-				aluout, writedata, readdata, lui);
+				aluout, writedata, readdata, lui, 
+				domul, multoreg, lohi);
 endmodule
 
