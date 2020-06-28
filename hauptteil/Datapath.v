@@ -1,6 +1,6 @@
 module Datapath(
 	input         clk, reset,
-	input         memtoreg,
+	input   [1:0]      memtoreg,
 	input         dobranch,
 	input         alusrcbimm,
 	input  [4:0]  destreg,
@@ -13,23 +13,40 @@ module Datapath(
 	output [31:0] aluout,
 	output [31:0] writedata,
 	input  [31:0] readdata
+	
 );
 	wire [31:0] pc;
 	wire [31:0] signimm;
 	wire [31:0] srca, srcb, srcbimm;
 	wire [31:0] result;
+	wire [31:0] luiout;
 
 	// Fetch: Reiche PC an Instruktionsspeicher weiter und update PC
 	ProgramCounter pcenv(clk, reset, dobranch, signimm, jump, instr[25:0], pc);
 
 	// Execute:
 	// (a) Wähle Operanden aus
-	SignExtension se(instr[15:0], signimm);
+	SignExtension se(instr[15:0], signimm);   //--> immediate wird in signimm geladen
 	assign srcbimm = alusrcbimm ? signimm : srcb;
 	// (b) Führe Berechnung in der ALU durch
 	ArithmeticLogicUnit alu(srca, srcbimm, alucontrol, aluout, zero);
-	// (c) Wähle richtiges Ergebnis aus
-	assign result = memtoreg ? readdata : aluout;
+	// (c) Führe LUI aus
+	LUI lu(instr[15:0], luiout);
+	// (d) Wähle richtiges Ergebnis aus
+	reg [31:0] res;
+	assign result = res;
+	always @* 
+	begin
+		case(memtoreg)
+			2'b00:
+				res = aluout;
+			2'b01:
+				res = readdata;
+			2'b10:
+				res = luiout;
+		endcase
+	end
+	//assign result = memtoreg ? readdata : aluout;
 
 	// Memory: Datenwort das zur (möglichen) Speicherung an den Datenspeicher übertragen wird
 	assign writedata = srcb;
@@ -102,6 +119,13 @@ module Adder(
 	assign {cout, y} = a + b + cin;
 endmodule
 
+module LUI(
+	input [15:0] i,
+	output [31:0] o
+);
+	assign o = i << 16;
+endmodule
+
 module SignExtension(
 	input  [15:0] a,
 	output [31:0] y
@@ -115,69 +139,75 @@ module ArithmeticLogicUnit(
 	output [31:0] result,
 	output        zero
 );
-	wire [31:0] w1;
-	wire w2;
-	// TODO Implementierung der ALU
+	reg [31:0] w1;
+	reg w2;
+	reg [31:0] resreg;
+	reg z;
+	assign result = resreg;
+	assign zero = z;
+	always @*
+	begin
 	case (alucontrol)
 		3'b000:
 			begin
-				//0^31 (a < b?1:0)
+				//0^31 (a < b?1:0) SLT
 				if (a < b)
 					begin
-						assign result = {1'b1};
-						assign zero = 1'b0;
+						resreg = 32'b00000000000000000000000000000001;
+						z = 1'b0;
 					end 
 				else
 					begin
-						assign result = {32{1'b0}};
-						assign zero = 1'b1;
+						resreg = 32'b00000000000000000000000000000000;
+						z = 1'b1;
 					end
 			end
 		3'b001:
 			begin
 				//a - b
-				assign {w2, w1} = a - b;
-				//signed beachten????
+				{w2, w1} = a - b;
 				//result an w2 anpassen?
-				assign result = w1;
-				if (result == {32{1'b0}})
-					assign zero = 1'b1;
+				resreg = w1;
+				if (resreg == 32'b00000000000000000000000000000000)
+					z = 1'b1;
 				else 
-					assign zero = 1'b0;
+					z = 1'b0;
 			end
 		3'b101:
 			begin
-				assign {w2, w1} = a + b;
+				//a+b
+				{w2, w1} = a + b;
 				//result an w2 anpassen???????
-				assign result = w1;
-				if (result == {32{1'b0}})
-					assign zero = 1'b1;
+				resreg = w1;
+				if (resreg == 32'b00000000000000000000000000000000)
+					z = 1'b1;
 				else 
-					assign zero = 1'b0;
+					z = 1'b0;
 			end
 		3'b110:
 			begin
 				//a|b
-				assign result = a|b;
-				if (result == {32{1'b0}})
-					assign zero = 1'b1;
+				resreg = (a|b);
+				if (resreg == 32'b00000000000000000000000000000000)
+					z = 1'b1;
 				else 
-					assign zero = 1'b0;
+					z = 1'b0;
 			end
 		3'b111:
 			begin
 				//a&b
-				assign result = a&b;
-				if (result == {32{1'b0}})
-					assign zero = 1'b1;
+				resreg = (a&b);
+				if (resreg == 32'b00000000000000000000000000000000)
+					z = 1'b1;
 				else 
-					assign zero = 1'b0;
+					z = 1'b0;
 			end
 	endcase
-
+	end
 endmodule
 
-//ALU teilweise implementiert / verhalten bei overflow? / signed für subtraktion?
+//ALU größtenteils implementiert / verhalten bei overflow? / signed für subtraktion?
 //ALU anhand der alucontrol codes implementiert, das Verhalten für andere codes ist wie in der Aufgabe gesagt undefiniert. 
 //Bei der Addition und subtraktion kann es zu einem overflow kommen, dieser bit ist zwar abgefangen, aber es ist noch nicht implementiert, wie mit ihm umgegangen wird, da result eine Länge von 32bit hat.
-//Subtraktion momentan noch unsigned
+//alucontrol auf 4 erweitert
+//alu um 16er shift erweitert
