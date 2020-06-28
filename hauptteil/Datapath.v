@@ -124,12 +124,12 @@ module ArithmeticLogicUnit(
 				//0^31 (a < b?1:0)
 				if (a < b)
 					begin
-						assign result = {31{1'b0}, 1b'1};
+						assign result = {1'b1};
 						assign zero = 1'b0;
 					end 
 				else
 					begin
-						assign result = {32{1b'0}};
+						assign result = {32{1'b0}};
 						assign zero = 1'b1;
 					end
 			end
@@ -164,7 +164,7 @@ module ArithmeticLogicUnit(
 				else 
 					assign zero = 1'b0;
 			end
-		3'111:
+		3'b111:
 			begin
 				//a&b
 				assign result = a&b;
