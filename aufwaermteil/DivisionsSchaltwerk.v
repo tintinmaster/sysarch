@@ -7,32 +7,26 @@ module Division(
 	output [31:0] r
 );
 
-	reg [31:0] forR;
-	reg [31:0] forB;
-	reg [31:0] forA;
-	integer rStrich;
-	integer count;
+	reg [31:0] forR, forA, forB;
+	integer rStrich, count;
 
 	// TODO Implementierung
 	always @(posedge clock)
 	begin
-		if (start == 1) begin
-			forR <= 31'b0;
+		if (start == 1) 
+		begin
+			//$display("start");
+			forR <= 32'b0;
 			forB <= b;
 			forA <= a;
-			count <= 0;
+			count <= 31;
 		end
 		else begin
-			if (count < 31)
-				count = count + 1;
-			if (count == 32)
-				$display("over");
-			else begin
-				rStrich = (r << 2) + a[count];
-				$display("R reg:");
-				$display(forR);
-				$display("B reg");
-				$display(forB);
+			//$display("count: %d, forA: %b, forB: %b, forR: %b", count, forA, forB, forR);
+			if (count > 0)
+			begin
+				count = count - 1;
+				rStrich = (r << 1) + a[count];
 				if (rStrich < forB) begin
 					forA[count] = 0;
 					forR = rStrich;
