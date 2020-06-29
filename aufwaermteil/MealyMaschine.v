@@ -15,8 +15,8 @@ always @(posedge clock)
 			$display("reg: %d%d%d", ff2, ff1, i);
 		end
 
-	assign o[0] = (i & !ff2 & !ff3);
-	assign o[1] = (i & ff1 & ff3);
+	assign o[1] = (i & !ff2 & !ff3);
+	assign o[0] = (i & ff1 & ff3);
 
 endmodule
 
@@ -57,7 +57,7 @@ initial
 		clk <= 1;
 		#1;
 		$display("out: %d%d", out[0],out[1]);
-		if (out[0] != 1 | out[1] != 0)
+		if (out[1] != 1 | out[0] != 0)
 			$display("fault on zero");
 
 		currInp = inp[1];
@@ -65,7 +65,7 @@ initial
 		clk <= 1;
 		#1;
 		$display("out: %d%d", out[0],out[1]);
-		if (out[0] != 0 | out[1] != 0)
+		if (out[1] != 0 | out[0] != 0)
 			$display("fault on one");
 
 		currInp = inp[2];
@@ -73,7 +73,7 @@ initial
 		clk <= 1;
 		#1;
 		$display("out: %d%d", out[0],out[1]);
-		if (out[0] != 0 | out[1] != 1)
+		if (out[1] != 0 | out[0] != 1)
 			$display("fault on two");
 
 		currInp = inp[3];
@@ -81,7 +81,7 @@ initial
 		clk <= 1;
 		#1;
 		$display("out: %d%d", out[0],out[1]);
-		if (out[0] != 0 | out[1] != 0)
+		if (out[1] != 0 | out[0] != 0)
 			$display("fault on three");
 
 		currInp = inp[4];
@@ -89,7 +89,7 @@ initial
 		clk <= 1;
 		#1;
 		$display("out: %d%d", out[0],out[1]);
-		if (out[0] != 0 | out[1] != 0)
+		if (out[1] != 0 | out[0] != 0)
 			$display("fault on four");
 
 		currInp = inp[5];
@@ -97,7 +97,7 @@ initial
 		clk <= 1;
 		#1;
 		$display("out: %d%d", out[0],out[1]);
-		if (out[0] != 1 | out[1] != 0)
+		if (out[1] != 1 | out[0] != 0)
 			$display("fault on five");
 		
 		currInp = inp[6];
@@ -105,7 +105,7 @@ initial
 		clk <= 1;
 		#1;
 		$display("out: %d%d", out[0],out[1]);
-		if (out[0] != 0 | out[1] != 0)
+		if (out[1] != 0 | out[0] != 0)
 			$display("fault on six");
 
 		currInp = inp[7];
@@ -113,7 +113,7 @@ initial
 		clk <= 1;
 		#1;
 		$display("out: %d%d", out[0],out[1]);
-		if (out[0] != 0 | out[1] != 0)
+		if (out[1] != 0 | out[0] != 0)
 			$display("fault on seven");
 
 		currInp = inp[8];
@@ -121,7 +121,7 @@ initial
 		clk <= 1;
 		#1;
 		$display("out: %d%d", out[0],out[1]);
-		if (out[0] != 0 | out[1] != 0)
+		if (out[1] != 0 | out[0] != 0)
 			$display("fault on eight");
 
 		currInp = inp[9];
@@ -129,7 +129,7 @@ initial
 		clk <= 1;
 		#1;
 		$display("out: %d%d", out[0],out[1]);
-		if (out[0] != 1 | out[1] != 0)
+		if (out[1] != 1 | out[0] != 0)
 			$display("fault on nine");
 
 	end
