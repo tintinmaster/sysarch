@@ -1,6 +1,6 @@
 module Datapath(
 	input         clk, reset,
-	input 	      memtoreg,
+	input         memtoreg,
 	input         dobranch,
 	input         alusrcbimm,
 	input  [4:0]  destreg,
@@ -16,14 +16,15 @@ module Datapath(
 	input 		  lui,
 	input domul,
 	input multoreg,
-	input lohi
+	input lohi,
+  input jal
 );
 	wire [31:0] pc;
 	wire [31:0] signimm;
 	wire [31:0] srca, srcb, srcbimm;
 	wire [31:0] result;
 	wire [31:0] luiout;
-	wire  [63:0] mmout;
+	wire [63:0] mmout;
 	wire [31:0] lo;
 	wire [31:0] hi;
 
@@ -41,7 +42,7 @@ module Datapath(
 	// (b2) Führe MUL berechnung aus
 	Multi m(srca, srcbimm, mmout);
 	// (c) Wähle richtiges Ergebnis aus
-	assign result = multoreg ? (lohi ? hi : lo) : (lui ? luiout : (memtoreg ? readdata : aluout));
+	assign result = jal ? (pc+4) : (multoreg ? (lohi ? hi : lo) : (lui ? luiout : (memtoreg ? readdata : aluout)));
 	// Memory: Datenwort das zur (möglichen) Speicherung an den Datenspeicher übertragen wird
 	assign writedata = srcb;
 	// Write-Back: Stelle Operanden bereit und schreibe das jeweilige Resultat zurück
@@ -221,14 +222,6 @@ module ArithmeticLogicUnit(
 					z = 1'b1;
 				else 
 					z = 1'b0;
-			end
-		3'b010:
-			begin //mflo
-				
-			end
-		3'b100:
-			begin //mfhi
-				
 			end
 	endcase
 	end

@@ -1,7 +1,7 @@
 module Decoder(
 	input     [31:0] instr,      // Instruktionswort
 	input            zero,       // Liefert aktuelle Operation im Datenpfad 0 als Ergebnis?
-	output reg 		 memtoreg,   // Verwende ein geladenes Wort anstatt des ALU-Ergebis als Resultat
+	output reg       memtoreg,   // Verwende ein geladenes Wort anstatt des ALU-Ergebis als Resultat
 	output reg       memwrite,   // Schreibe in den Datenspeicher
 	output reg       dobranch,   // Führe einen relativen Sprung aus
 	output reg       alusrcbimm, // Verwende den immediate-Wert als zweiten Operanden
@@ -12,7 +12,8 @@ module Decoder(
 	output reg 		 lui,
 	output reg		 domul,
 	output reg		 multoreg,
-	output reg		 lohi
+	output reg		 lohi,
+  output reg     jal
 
 	
 );
@@ -30,6 +31,7 @@ module Decoder(
 					memwrite = 0;
 					memtoreg = 0;
 					dojump = 0;
+          jal = 0;
 					case (funct)
 						6'b100001: alucontrol = 3'b101; // Addition unsigned
 						6'b100011: alucontrol = 3'b001; // Subtraktion unsigned
@@ -64,6 +66,13 @@ module Decoder(
 								multoreg = 1;
 								lohi = 1; //hi
 							end
+            6'b001000: //jr jump to address in register
+              //TODO
+              begin
+                domul = 0;
+                regwrite = 1;
+                destreg = 5'b11111;
+              end
 						default:   
 							begin
 								domul = 0;
@@ -89,6 +98,7 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
+          jal = 0;
 					
 				
 				end
@@ -106,6 +116,7 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
+          jal = 0;
 					
 				
 				end
@@ -123,6 +134,7 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
+          jal = 0;
 					
 				
 				end
@@ -140,9 +152,27 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
+          jal = 0;
 					
 				
 				end
+      6'b000011: //Jump and Link
+        begin //Can make problems, done by TIM
+          regwrite = 1;
+          destreg = 5'b11111;
+          alusrcbimm = 0;
+          dobranch = 0;
+          memwrite = 0;
+          memtoreg = 0;
+          dojump = 1;
+          alucontrol = 3'b011;
+          lui = 0;
+          domul = 0;
+          multoreg = 0;
+          lohi = 1'bx;
+          jal = 1;
+          
+        end
 			6'b001111: //Lui Load Upper Immediate !!!!!!! 
 				begin
 					regwrite = 1;
@@ -157,6 +187,7 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
+          jal = 0;
 					
 				
 				end
@@ -174,7 +205,7 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
-					
+					jal = 0;
 				
 				end
 			6'b000001: // BLTZ Branch Less Than Zero !!!!! //a muss als signed betrachtet werden!!
@@ -191,6 +222,7 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
+          jal = 0;
 					
 					
 					//b ist 0 da stellen für reg auf 0reg zeigen
@@ -209,6 +241,7 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
+          jal = 0;
 					
 				
 				end
