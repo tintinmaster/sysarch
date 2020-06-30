@@ -70,8 +70,10 @@ module Decoder(
               //TODO
               begin
                 domul = 0;
-                regwrite = 1;
-                destreg = 5'b11111;
+                regwrite = 0;
+                destreg = 0;
+                multoreg = 0;
+                lohi = 1'bx;
               end
 						default:   
 							begin
@@ -157,7 +159,7 @@ module Decoder(
 				
 				end
       6'b000011: //Jump and Link
-        begin //Can make problems, done by TIM
+        begin //Can make problems
           regwrite = 1;
           destreg = 5'b11111;
           alusrcbimm = 0;

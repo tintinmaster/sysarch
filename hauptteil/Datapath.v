@@ -29,7 +29,7 @@ module Datapath(
 	wire [31:0] hi;
 
 	// Fetch: Reiche PC an Instruktionsspeicher weiter und update PC
-	ProgramCounter pcenv(clk, reset, dobranch, signimm, jump, instr[25:0], pc);
+	ProgramCounter pcenv(clk, reset, dobranch, signimm, jump, instr[25:0], pc, srca);
 
 	// Execute:
 	// (a1) Wähle Operanden aus
@@ -42,7 +42,8 @@ module Datapath(
 	// (b2) Führe MUL berechnung aus
 	Multi m(srca, srcbimm, mmout);
 	// (c) Wähle richtiges Ergebnis aus
-	assign result = jal ? (pc+4) : (multoreg ? (lohi ? hi : lo) : (lui ? luiout : (memtoreg ? readdata : aluout)));
+  // TODO pc + 4 wertet zu nur 4 aus, BEHEBEN!
+	assign result = jal ? (pc + 4) : (multoreg ? (lohi ? hi : lo) : (lui ? luiout : (memtoreg ? readdata : aluout)));
 	// Memory: Datenwort das zur (möglichen) Speicherung an den Datenspeicher übertragen wird
 	assign writedata = srcb;
 	// Write-Back: Stelle Operanden bereit und schreibe das jeweilige Resultat zurück
@@ -58,7 +59,8 @@ module ProgramCounter(
 	input  [31:0] branchoffset,
 	input         dojump,
 	input  [25:0] jumptarget,
-	output [31:0] progcounter
+	output [31:0] progcounter,
+  input  [31:0] register
 );
 	reg  [31:0] pc;
 	wire [31:0] incpc, branchpc, nextpc;
@@ -68,9 +70,9 @@ module ProgramCounter(
 	// Berechne mögliches (PC-relatives) Sprungziel
 	Adder pcbranch(.a(incpc), .b({branchoffset[29:0], 2'b00}), .cin(1'b0), .y(branchpc));
 	// Wähle den nächsten Wert des Befehlszählers aus
-	assign nextpc = dojump   ? {incpc[31:28], jumptarget, 2'b00} :
-					dobranch ? branchpc :
-							   incpc;
+	assign nextpc = !jumptarget[5] & !jumptarget[4] & jumptarget[3] & !jumptarget[2] & !jumptarget[1] & !jumptarget[0] ? register :
+    (dojump   ? {incpc[31:28], jumptarget, 2'b00} :
+					        (dobranch ? branchpc : incpc));
 
 	// Der Befehlszähler ist ein Speicherbaustein
 	always @(posedge clk)
