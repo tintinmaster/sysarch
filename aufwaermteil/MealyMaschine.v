@@ -16,7 +16,7 @@ always @(posedge clock)
 		end
 
 	assign o[1] = (i & !ff2 & !ff3);
-	assign o[0] = (i & ff1 & ff3);
+	assign o[0] = (i & ff2 & ff3);
 
 endmodule
 
