@@ -13,8 +13,9 @@ module Decoder(
 	output reg		 domul,
 	output reg		 multoreg,
 	output reg		 lohi,
-  output reg     jal,
-  output reg     jr
+	output reg     	 jal,
+	output reg       jr,
+	output reg		 asigned
 
 	
 );
@@ -32,8 +33,9 @@ module Decoder(
 					memwrite = 0;
 					memtoreg = 0;
 					dojump = 0;
-          jal = 0;
-          jr = 0;
+					jal = 0;
+					jr = 0;
+					asigned = 0;
 					case (funct)
 						6'b100001: alucontrol = 3'b101; // Addition unsigned
 						6'b100011: alucontrol = 3'b001; // Subtraktion unsigned
@@ -68,16 +70,16 @@ module Decoder(
 								multoreg = 1;
 								lohi = 1; //hi
 							end
-            6'b001000: //jr jump to address in register
-              //TODO
-              begin
-                domul = 0;
-                regwrite = 0;
-                destreg = 0;
-                multoreg = 0;
-                lohi = 1'bx;
-                jr = 1;
-              end
+						6'b001000: //jr jump to address in register
+						//TODO
+							begin
+								domul = 0;
+								regwrite = 0;
+								destreg = 0;
+								multoreg = 0;
+								lohi = 1'bx;
+								jr = 1;
+							end
 						default:   
 							begin
 								domul = 0;
@@ -103,8 +105,9 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
-          jal = 0;
+					jal = 0;
 					jr = 0;
+					asigned = 0;
 				
 				end
 			6'b000100: // Branch Equal
@@ -121,8 +124,9 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
-          jal = 0;
+					jal = 0;
 					jr = 0;
+					asigned = 0;
 					
 				
 				end
@@ -140,8 +144,9 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
-          jal = 0;
+					jal = 0;
 					jr = 0;
+					asigned = 0;
 					
 				
 				end
@@ -159,29 +164,31 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
-          jal = 0;
+					jal = 0;
 					jr = 0;
+					asigned = 0;
 					
 				
 				end
-      6'b000011: //Jump and Link
-        begin //Can make problems
-          regwrite = 1;
-          destreg = 5'b11111;
-          alusrcbimm = 0;
-          dobranch = 0;
-          memwrite = 0;
-          memtoreg = 0;
-          dojump = 1;
-          alucontrol = 3'b011;
-          lui = 0;
-          domul = 0;
-          multoreg = 0;
-          lohi = 1'bx;
-          jal = 1;
+			6'b000011: //Jump and Link
+				begin //Can make problems
+					regwrite = 1;
+					destreg = 5'b11111;
+					alusrcbimm = 0;
+					dobranch = 0;
+					memwrite = 0;
+					memtoreg = 0;
+					dojump = 1;
+					alucontrol = 3'b011;
+					lui = 0;
+					domul = 0;
+					multoreg = 0;
+					lohi = 1'bx;
+					jal = 1;
 					jr = 0;
+					asigned = 0;
           
-        end
+				end
 			6'b001111: //Lui Load Upper Immediate !!!!!!! 
 				begin
 					regwrite = 1;
@@ -196,8 +203,9 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
-          jal = 0;
+					jal = 0;
 					jr = 0;
+					asigned = 0;
 					
 				
 				end
@@ -217,6 +225,7 @@ module Decoder(
 					lohi = 1'bx;
 					jal = 0;
 					jr = 0;
+					asigned = 0;
 				
 				end
 			6'b000001: // BLTZ Branch Less Than Zero !!!!! //a muss als signed betrachtet werden!!
@@ -233,8 +242,9 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
-          jal = 0;
+					jal = 0;
 					jr = 0;
+					asigned = 1;
 					
 					
 					//b ist 0 da stellen für reg auf 0reg zeigen
@@ -253,8 +263,9 @@ module Decoder(
 					domul = 0;
 					multoreg = 0;
 					lohi = 1'bx;
-          jal = 0;
+					jal = 0;
 					jr = 0;
+					asigned = 0;
 					
 				
 				end

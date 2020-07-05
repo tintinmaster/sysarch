@@ -17,8 +17,9 @@ module Datapath(
 	input domul,
 	input multoreg,
 	input lohi,
-  input jal,
-  input jr
+	input jal,
+	input jr,
+	input asigned
 );
 	wire [31:0] pc;
 	wire [31:0] signimm;
@@ -39,7 +40,7 @@ module Datapath(
 	LUI lu(instr[15:0], luiout);
 	assign srcbimm = alusrcbimm ? signimm : srcb;
 	// (b1) Führe Berechnung in der ALU durch
-	ArithmeticLogicUnit alu(srca, srcbimm, alucontrol, aluout, zero);
+	ArithmeticLogicUnit alu(srca, srcbimm, alucontrol, aluout, zero, asigned);
 	// (b2) Führe MUL berechnung aus
 	Multi m(srca, srcbimm, mmout);
 	// (c) Wähle richtiges Ergebnis aus
@@ -147,7 +148,8 @@ module Multi(
 	input [31:0] a, b,
 	output [63:0] out
 );
-	assign out = a*b;
+	wire c;
+	assign {c, out} = a*b;
 endmodule
 
 module SignExtension(
@@ -161,7 +163,8 @@ module ArithmeticLogicUnit(
 	input  [31:0] a, b,
 	input  [2:0]  alucontrol,
 	output [31:0] result,
-	output        zero
+	output        zero,
+	input asigned
 );
 	reg [31:0] w1;
 	reg w2;
@@ -175,16 +178,33 @@ module ArithmeticLogicUnit(
 		3'b000:
 			begin
 				//0^31 (a < b?1:0) SLT
-				if (a < b)
+				if (asigned)
 					begin
-						resreg = 32'b00000000000000000000000000000001;
-						z = 1'b0;
-					end 
-				else
-					begin
-						resreg = 32'b00000000000000000000000000000000;
-						z = 1'b1;
+						if ($signed(a) < b)
+							begin
+								resreg = 32'b00000000000000000000000000000001;
+								z = 1'b0;
+							end 
+						else
+							begin
+								resreg = 32'b00000000000000000000000000000000;
+								z = 1'b1;
+							end
 					end
+				else 
+					begin
+						if (a < b)
+							begin
+								resreg = 32'b00000000000000000000000000000001;
+								z = 1'b0;
+							end 
+						else
+							begin
+								resreg = 32'b00000000000000000000000000000000;
+								z = 1'b1;
+							end
+					end
+				
 			end
 		3'b001:
 			begin
