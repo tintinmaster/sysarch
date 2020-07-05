@@ -4,12 +4,10 @@ module Division(
 	input  [31:0] a,
 	input  [31:0] b,
 	output [31:0] q,
-	output [31:0] r,
-	output busy
+	output [31:0] r
 );
 
 	reg [31:0] forR, forA, forB;
-	reg bizzy;
 	integer rStrich, count;
 
 	// TODO Implementierung
@@ -22,12 +20,9 @@ module Division(
 			forB <= b;
 			forA <= a;
 			count <= 31;
-			bizzy = 1;
 		end
 		else begin
 			//$display("count: %d, forA: %b, forB: %b, forR: %b", count, forA, forB, forR);
-			if (count == 0)
-				bizzy = 0;
 			if (count > 0)
 			begin
 				count = count - 1;
@@ -42,7 +37,6 @@ module Division(
 			end
 		end
 	end
-	assign busy = bizzy;
 	assign q = forA;
 	assign r = forR;
 endmodule
