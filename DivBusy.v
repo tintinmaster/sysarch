@@ -26,7 +26,7 @@ module Division(
 		end
 		else begin
 			//$display("count: %d, forA: %b, forB: %b, forR: %b", count, forA, forB, forR);
-			if (count = 0)
+			if (count == 0)
 				bizzy = 0;
 			if (count > 0)
 			begin
